@@ -20,7 +20,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         captureSession = AVCaptureSession()
         captureSession.sessionPreset = .high
 
-        guard let camera = AVCaptureDevice.default(for: .video) else {
+        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
             print("No camera available")
             return
         }
@@ -34,10 +34,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
 
         videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        videoPreviewLayer.videoGravity = .resizeAspectFill
+        videoPreviewLayer.videoGravity = .resizeAspect
         videoPreviewLayer.frame = view.layer.bounds
+        
+        videoPreviewLayer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1)) // Horizontal flip
+
         view.layer.addSublayer(videoPreviewLayer)
 
+        // Receive video frames as sample buffers
         let videoOutput = AVCaptureVideoDataOutput()
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
         captureSession.addOutput(videoOutput)
@@ -56,6 +60,22 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     func processImageWithOpenCV(_ pixelBuffer: CVPixelBuffer) {
-        // Call OpenCV functions here
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+           
+       let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)
+       let width = CVPixelBufferGetWidth(pixelBuffer)
+       let height = CVPixelBufferGetHeight(pixelBuffer)
+       let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+       
+       // Assuming a BGRA pixel format
+       let mat = cv::Mat(
+           rows: height,
+           cols: width,
+           type: cv.CV_8UC4,
+           data: baseAddress
+       )
+       
+       CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
+       
     }
 }

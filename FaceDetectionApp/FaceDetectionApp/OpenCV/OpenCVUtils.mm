@@ -8,6 +8,7 @@
 
 #import <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs/ios.h>
+#include <CoreVideo/CoreVideo.h>
 #import "OpenCVUtils.h"
 
 
@@ -141,6 +142,27 @@
 
 + (NSString *)getOpenCVVersion {
     return [NSString stringWithFormat:@"OpenCV Version %s",  CV_VERSION];
+}
+ 
+
+cv::Mat convertPixelBufferToMat(CVPixelBufferRef pixelBuffer) {
+    // Lock the base address of the pixel buffer
+    CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+    // Get the base address of the pixel buffer
+    void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
+    size_t width = CVPixelBufferGetWidth(pixelBuffer);
+    size_t height = CVPixelBufferGetHeight(pixelBuffer);
+    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
+
+    // Create the OpenCV Mat with the appropriate data and dimensions
+    cv::Mat mat(height, width, CV_8UC4, baseAddress, bytesPerRow);
+
+    // Unlock the base address
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+    // Return the resulting cv::Mat
+    return mat;
 }
 
 + (UIImage *)grayscaleImg:(UIImage *)image {
