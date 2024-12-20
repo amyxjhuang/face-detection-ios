@@ -14,6 +14,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = UIColor.systemPink
 
         // Setup Capture Session
         captureSession = AVCaptureSession()
