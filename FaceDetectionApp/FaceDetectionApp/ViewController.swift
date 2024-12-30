@@ -44,7 +44,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         // Initialize imageView for processed image
         imageView = UIImageView(frame: view.bounds)
-        imageView.contentMode = .scaleAspectFit // To ensure the processed image fits within the screen
+//        imageView.contentMode = .scaleAspectFit // To ensure the processed image fits within the screen
         imageView.isHidden = false // Ensure the imageView is visible
         view.addSubview(imageView)
 

@@ -145,10 +145,12 @@
             NSLog(@"Pixel format: %ld", CVPixelBufferGetPixelFormatType(pixelBuffer));
             NSLog(@"Base address: %p", baseAddress);
             NSLog(@"Width: %d, Height: %d, BytesPerRow: %d", width, height, bytesPerRow);
+
+    
             NSLog(@"First pixel in Y plane: %d", yPlane[0]);  // Print first Y pixel value
 
             // Create OpenCV matrices for the Y, U, and V planes
-            cv::Mat yMat(height, width, CV_8UC1, yPlane, bytesPerRow);
+            cv::Mat yMat(height, width, CV_8UC1, yPlane);
             cv::Mat uvMat(height / 2, width / 2, CV_8UC2, uvPlane);
 
             // You need to convert the YUV to RGB/BGRA
