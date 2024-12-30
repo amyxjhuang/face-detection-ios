@@ -17,7 +17,6 @@
 - (void)convertToMat: (cv::Mat *)pMat: (bool)alphaExists;
 - (cv::Mat)cvMatFromUIImage:(UIImage *)image;
 - (cv::Mat)cvMatGrayFromUIImage:(UIImage *)image;
--(UIImage *)UIImageFromCVMat:(cv::Mat)cvMat;
 
 @end
 
@@ -76,7 +75,7 @@
   return cvMat;
 }
 
-- (cv::Mat)cvMatGrayFromUIImage:(UIImage *)image
++ (cv::Mat)cvMatGrayFromUIImage:(UIImage *)image
 {
   CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
   CGFloat cols = image.size.width;
@@ -99,7 +98,136 @@
   return cvMat;
  }
 
--(UIImage *)UIImageFromCVMat:(cv::Mat)cvMat
+
+
+@end
+
+@implementation OpenCVUtils
+
+
++ (NSString *)getOpenCVVersion {
+    return [NSString stringWithFormat:@"OpenCV Version %s",  CV_VERSION];
+}
+ 
++ (cv::Mat)convertImageBufferToMat:(CVImageBufferRef)imageBuffer {
+    if (imageBuffer == NULL) {
+        return cv::Mat(); // Return an empty Mat if the buffer is null
+    }
+
+    // Check if the imageBuffer is a CVPixelBufferRef
+    if (CFGetTypeID(imageBuffer) == CVPixelBufferGetTypeID()) {
+        // Convert to CVPixelBufferRef
+        CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)imageBuffer;
+
+        // Lock the base address of the pixel buffer
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+        // Get the base address of the pixel buffer
+        void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
+
+        // Get the image dimensions and bytes per row
+        int width = CVPixelBufferGetWidth(pixelBuffer);
+        int height = CVPixelBufferGetHeight(pixelBuffer);
+        int bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
+
+        // Check the pixel format and create the corresponding cv::Mat
+        cv::Mat mat;
+
+        // If the pixel format is BGRA (32-bit color), handle as such
+        if (CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32BGRA) {
+            mat = cv::Mat(height, width, CV_8UC4, baseAddress, bytesPerRow);
+        }
+        // If it's YUV420p, we need to convert it manually to RGB or BGRA
+        else if (CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
+            // The Y plane starts at baseAddress, followed by the UV plane
+            uint8_t *yPlane = (uint8_t *)baseAddress;
+            uint8_t *uvPlane = yPlane + width * height;
+            NSLog(@"Pixel format: %ld", CVPixelBufferGetPixelFormatType(pixelBuffer));
+            NSLog(@"Base address: %p", baseAddress);
+            NSLog(@"Width: %d, Height: %d, BytesPerRow: %d", width, height, bytesPerRow);
+            NSLog(@"First pixel in Y plane: %d", yPlane[0]);  // Print first Y pixel value
+
+            // Create OpenCV matrices for the Y, U, and V planes
+            cv::Mat yMat(height, width, CV_8UC1, yPlane, bytesPerRow);
+            cv::Mat uvMat(height / 2, width / 2, CV_8UC2, uvPlane);
+
+            // You need to convert the YUV to RGB/BGRA
+            cv::Mat rgbMat;
+            cv::cvtColor(yMat, rgbMat, cv::COLOR_YUV2BGR_I420);
+
+            // Optionally, convert to BGRA (if you need a 4-channel output)
+            cv::Mat bgraMat;
+            cv::cvtColor(rgbMat, bgraMat, cv::COLOR_BGR2BGRA);
+
+            mat = bgraMat;
+        }
+
+        // Unlock the base address after processing
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+        return mat;
+    }
+
+    // If it's not a CVPixelBufferRef, you can return an empty Mat or handle it differently
+    return cv::Mat(); // Return an empty cv::Mat if it's not a supported type
+}
+
++ (cv::Mat)convertPixelBufferToMat:(CVPixelBufferRef)pixelBuffer {
+    // Lock the base address of the pixel buffer
+    CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+    // Get the base address of the pixel buffer
+    void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
+    int width = CVPixelBufferGetWidth(pixelBuffer);
+    int height = CVPixelBufferGetHeight(pixelBuffer);
+    int bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
+
+    // Create the OpenCV Mat with the appropriate data and dimensions
+    cv::Mat mat(height, width, CV_8UC1, baseAddress, bytesPerRow);
+
+    // Unlock the base address
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+    // Return the resulting cv::Mat
+    return mat;
+}
+
+
++ (cv::Mat)detectFacesInMat:(cv::Mat)inputMat {
+    // Convert the inputMat from BGRA to Grayscale
+    cv::Mat grayMat;
+    cv::cvtColor(inputMat, grayMat, cv::COLOR_BGRA2GRAY);
+
+    // Load the Haar cascade model
+    cv::CascadeClassifier faceCascade;
+    if (!faceCascade.load("haarcascade_frontalface_default.xml")) {
+        NSLog(@"Error loading Haar cascade.");
+        return inputMat; // Return original frame if the model fails to load
+    }
+
+    // Detect faces
+    std::vector<cv::Rect> faces;
+    float scaleFactor = 1.1;
+    int minNeighbors = 3;
+    int flags = 0;
+    faceCascade.detectMultiScale(
+        grayMat,
+        faces,
+        scaleFactor,
+        minNeighbors,
+        flags,
+        cv::Size(30, 30) // Minimum size
+    );
+
+    // Draw rectangles around detected faces
+    for (const auto& face : faces) {
+        cv::rectangle(inputMat, face, cv::Scalar(0, 255, 0), 2); // Green rectangles
+    }
+
+    return inputMat; // Return the modified frame
+}
+
++ (UIImage *)UIImageFromCVMat:(cv::Mat)cvMat
 {
   NSData *data = [NSData dataWithBytes:cvMat.data length:cvMat.elemSize()*cvMat.total()];
   CGColorSpaceRef colorSpace;
@@ -119,7 +247,7 @@
                                      8 * cvMat.elemSize(),                       //bits per pixel
                                      cvMat.step[0],                            //bytesPerRow
                                      colorSpace,                                 //colorspace
-                                     kCGImageAlphaNone|kCGBitmapByteOrderDefault,// bitmap info
+                                      kCGImageAlphaNoneSkipLast,// bitmap info
                                      provider,                                   //CGDataProviderRef
                                      NULL,                                       //decode
                                      false,                                      //should interpolate
@@ -136,35 +264,6 @@
   return finalImage;
  }
 
-
-@end
-
-@implementation OpenCVUtils
-
-+ (NSString *)getOpenCVVersion {
-    return [NSString stringWithFormat:@"OpenCV Version %s",  CV_VERSION];
-}
- 
-
-+ (cv::Mat)convertPixelBufferToMat:(CVPixelBufferRef)pixelBuffer {
-    // Lock the base address of the pixel buffer
-    CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-
-    // Get the base address of the pixel buffer
-    void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
-    size_t width = CVPixelBufferGetWidth(pixelBuffer);
-    size_t height = CVPixelBufferGetHeight(pixelBuffer);
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
-
-    // Create the OpenCV Mat with the appropriate data and dimensions
-    cv::Mat mat(height, width, CV_8UC4, baseAddress, bytesPerRow);
-
-    // Unlock the base address
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-
-    // Return the resulting cv::Mat
-    return mat;
-}
 
 
 + (UIImage *)grayscaleImg:(UIImage *)image {

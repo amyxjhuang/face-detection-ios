@@ -11,6 +11,7 @@ import AVFoundation
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     var captureSession: AVCaptureSession!
     var videoPreviewLayer: AVCaptureVideoPreviewLayer!
+    var imageView: UIImageView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,7 +19,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
         // Setup Capture Session
         captureSession = AVCaptureSession()
-        captureSession.sessionPreset = .high
+        captureSession.sessionPreset = .high // video quality
 
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
             print("No camera available")
@@ -37,9 +38,16 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         videoPreviewLayer.videoGravity = .resizeAspect
         videoPreviewLayer.frame = view.layer.bounds
         
-        videoPreviewLayer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1)) // Horizontal flip
+//        videoPreviewLayer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1)) // Horizontal flip
+        //        view.layer.addSublayer(videoPreviewLayer)
 
-        view.layer.addSublayer(videoPreviewLayer)
+        
+        // Initialize imageView for processed image
+        imageView = UIImageView(frame: view.bounds)
+        imageView.contentMode = .scaleAspectFit // To ensure the processed image fits within the screen
+        imageView.isHidden = false // Ensure the imageView is visible
+        view.addSubview(imageView)
+
 
         // Receive video frames as sample buffers
         let videoOutput = AVCaptureVideoDataOutput()
@@ -49,27 +57,37 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         captureSession.startRunning()
     }
 
-    // Process Each Frame
+    // Part of the AVCaptureVideoDataOutputSampleBufferDelegate protocol
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            return
-        }
+//        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+//            return
+//        }
         
         // Pass pixelBuffer to OpenCV for processing
-        processImageWithOpenCV(pixelBuffer)
+        processImageWithOpenCV(sampleBuffer: sampleBuffer)
     }
 
-    func processImageWithOpenCV(_ pixelBuffer: CVPixelBuffer) {
-        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly) // Locks the pixel buffer
-           
-       let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)
-       let width = CVPixelBufferGetWidth(pixelBuffer)
-       let height = CVPixelBufferGetHeight(pixelBuffer)
-       let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
-       
+    func processImageWithOpenCV(sampleBuffer: CMSampleBuffer) {
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+                return
+            }
+
+//        CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
+        let mat = OpenCVUtils.convertImageBuffer(toMat: imageBuffer);
         
-        let mat = OpenCVUtils.convertPixelBuffer(toMat: pixelBuffer);
-       CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
-       
+//        let processedMat = OpenCVUtils.detectFaces(inMat: mat)
+        let processedImage = OpenCVUtils.uiImage(fromCVMat: mat);
+        
+
+//        CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
+        
+        DispatchQueue.main.async {
+            if let imageView = self.imageView {
+                imageView.image = processedImage
+            } else {
+                print("imageView is nil")
+            }
+        }
+
     }
 }
