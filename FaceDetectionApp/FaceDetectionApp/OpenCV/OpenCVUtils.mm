@@ -202,7 +202,10 @@
 
     // Load the Haar cascade model
     cv::CascadeClassifier faceCascade;
-    if (!faceCascade.load("haarcascade_frontalface_default.xml")) {
+    NSString* faceCascadePath = [[NSBundle mainBundle] pathForResource:@"haarcascade_frontalface_default" ofType:@"xml"];
+
+
+    if (!faceCascade.load([faceCascadePath UTF8String])) {
         NSLog(@"Error loading Haar cascade.");
         return inputMat; // Return original frame if the model fails to load
     }

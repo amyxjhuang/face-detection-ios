@@ -136,14 +136,14 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "AC0FBF87-B5D3-4BE0-89BA-8F18426569F6"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FaceDetectionApp/OpenCV/OpenCVUtils.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "234"
-            endingLineNumber = "234"
+            startingLineNumber = "237"
+            endingLineNumber = "237"
             landmarkName = "+UIImageFromCVMat:"
             landmarkType = "7">
          </BreakpointContent>
@@ -248,7 +248,8 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "AEB01F00-90CC-4BB6-814B-52AA961C8675"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
+            condition = "bgraMat.data != &quot;&quot;"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FaceDetectionApp/OpenCV/OpenCVUtils.mm"
