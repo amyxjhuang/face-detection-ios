@@ -7,8 +7,9 @@
 
 
 #import <opencv2/opencv.hpp>
-#include <opencv2/imgcodecs/ios.h>
-#include <CoreVideo/CoreVideo.h>
+#import <opencv2/imgproc.hpp>
+#import <opencv2/imgcodecs/ios.h>
+
 #import "OpenCVUtils.h"
 
 
@@ -145,7 +146,7 @@
 }
  
 
-cv::Mat convertPixelBufferToMat(CVPixelBufferRef pixelBuffer) {
++ (cv::Mat)convertPixelBufferToMat:(CVPixelBufferRef)pixelBuffer {
     // Lock the base address of the pixel buffer
     CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
@@ -164,6 +165,7 @@ cv::Mat convertPixelBufferToMat(CVPixelBufferRef pixelBuffer) {
     // Return the resulting cv::Mat
     return mat;
 }
+
 
 + (UIImage *)grayscaleImg:(UIImage *)image {
     cv::Mat mat;

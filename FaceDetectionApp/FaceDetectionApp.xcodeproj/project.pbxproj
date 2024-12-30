@@ -33,6 +33,9 @@
 			exceptions = (
 				E1E1D8022D14B75100A019C3 /* Exceptions for "FaceDetectionApp" folder in "FaceDetectionApp" target */,
 			);
+			explicitFileTypes = {
+				OpenCV/OpenCVUtils.h = sourcecode.cpp.h;
+			};
 			path = FaceDetectionApp;
 			sourceTree = "<group>";
 		};

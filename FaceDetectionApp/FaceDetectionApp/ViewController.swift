@@ -60,21 +60,15 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     func processImageWithOpenCV(_ pixelBuffer: CVPixelBuffer) {
-        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly) // Locks the pixel buffer
            
        let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)
        let width = CVPixelBufferGetWidth(pixelBuffer)
        let height = CVPixelBufferGetHeight(pixelBuffer)
        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
        
-       // Assuming a BGRA pixel format
-       let mat = cv::Mat(
-           rows: height,
-           cols: width,
-           type: cv.CV_8UC4,
-           data: baseAddress
-       )
-       
+        
+        let mat = OpenCVUtils.convertPixelBuffer(toMat: pixelBuffer);
        CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
        
     }
