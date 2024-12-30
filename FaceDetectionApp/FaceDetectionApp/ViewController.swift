@@ -75,8 +75,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 //        CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
         let mat = OpenCVUtils.convertImageBuffer(toMat: imageBuffer);
         
-//        let processedMat = OpenCVUtils.detectFaces(inMat: mat)
-        let processedImage = OpenCVUtils.uiImage(fromCVMat: mat);
+        let processedMat = OpenCVUtils.detectFaces(in: mat)
+        let processedImage = OpenCVUtils.uiImage(fromCVMat: processedMat);
         
 
 //        CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
