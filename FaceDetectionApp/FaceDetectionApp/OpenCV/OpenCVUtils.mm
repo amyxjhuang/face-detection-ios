@@ -123,75 +123,56 @@
         CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
         // Get the base address of the pixel buffer
-        void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
-
+        uint8_t *baseAddress = (uint8_t*)CVPixelBufferGetBaseAddress(pixelBuffer);
+        
         // Get the image dimensions and bytes per row
-        int width = CVPixelBufferGetWidth(pixelBuffer);
-        int height = CVPixelBufferGetHeight(pixelBuffer);
-        int bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
+        int width = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0);
+        int height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0);
+        int bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+        NSLog(@"Pixel format: %ld", CVPixelBufferGetPixelFormatType(pixelBuffer));
+       NSLog(@"Base address: %p", baseAddress);
+       NSLog(@"Width: %d, Height: %d, BytesPerRow: %d", width, height, bytesPerRow);
 
         // Check the pixel format and create the corresponding cv::Mat
         cv::Mat mat;
+        CVPlanarPixelBufferInfo_YCbCrBiPlanar *bufferInfo = (CVPlanarPixelBufferInfo_YCbCrBiPlanar *)baseAddress;
 
         // If the pixel format is BGRA (32-bit color), handle as such
         if (CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32BGRA) {
-            mat = cv::Mat(height, width, CV_8UC4, baseAddress, bytesPerRow);
+            mat = cv::Mat(height, width, CV_8UC4, baseAddress);
         }
         // If it's YUV420p, we need to convert it manually to RGB or BGRA
         else if (CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
-            // The Y plane starts at baseAddress, followed by the UV plane
-            uint8_t *yPlane = (uint8_t *)baseAddress;
-            uint8_t *uvPlane = yPlane + width * height;
-            NSLog(@"Pixel format: %ld", CVPixelBufferGetPixelFormatType(pixelBuffer));
-            NSLog(@"Base address: %p", baseAddress);
-            NSLog(@"Width: %d, Height: %d, BytesPerRow: %d", width, height, bytesPerRow);
-
-    
-            NSLog(@"First pixel in Y plane: %d", yPlane[0]);  // Print first Y pixel value
-
-            // Create OpenCV matrices for the Y, U, and V planes
-            cv::Mat yMat(height, width, CV_8UC1, yPlane);
-            cv::Mat uvMat(height / 2, width / 2, CV_8UC2, uvPlane);
-
-            // You need to convert the YUV to RGB/BGRA
+            
+            // Access the full YUV420p buffer
+            uint8_t *yuvBuffer = static_cast<uint8_t *>(baseAddress+bufferInfo->componentInfoY.offset);
+            cv::Mat yuvImage(height, width, CV_8UC1, yuvBuffer);
+            
+            // Convert YUV420p to RGB
             cv::Mat rgbMat;
-            cv::cvtColor(yMat, rgbMat, cv::COLOR_YUV2BGR_I420);
+            cv::cvtColor(yuvImage, rgbMat, cv::COLOR_YUV2RGB_I420);
 
-            // Optionally, convert to BGRA (if you need a 4-channel output)
+            
+            // Convert to BGRA 
             cv::Mat bgraMat;
             cv::cvtColor(rgbMat, bgraMat, cv::COLOR_BGR2BGRA);
 
             mat = bgraMat;
+            
         }
 
         // Unlock the base address after processing
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-
-        return mat;
+        
+        cv::Mat rotatedImage;
+        cv::rotate(mat, rotatedImage, cv::ROTATE_90_CLOCKWISE);
+        cv::Mat flippedImage;
+        cv:flip(rotatedImage, flippedImage,1);
+        return flippedImage;
     }
 
     // If it's not a CVPixelBufferRef, you can return an empty Mat or handle it differently
     return cv::Mat(); // Return an empty cv::Mat if it's not a supported type
-}
-
-+ (cv::Mat)convertPixelBufferToMat:(CVPixelBufferRef)pixelBuffer {
-    // Lock the base address of the pixel buffer
-    CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-
-    // Get the base address of the pixel buffer
-    void *baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
-    int width = CVPixelBufferGetWidth(pixelBuffer);
-    int height = CVPixelBufferGetHeight(pixelBuffer);
-    int bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
-
-    // Create the OpenCV Mat with the appropriate data and dimensions
-    cv::Mat mat(height, width, CV_8UC1, baseAddress, bytesPerRow);
-
-    // Unlock the base address
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-
-    // Return the resulting cv::Mat
-    return mat;
 }
 
 

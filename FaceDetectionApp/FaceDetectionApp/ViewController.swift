@@ -5,10 +5,11 @@
 //  Created by Amy Huang on 12/19/24.
 //
 
+
 import UIKit
 import AVFoundation
 
-class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
+class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate  {
     var captureSession: AVCaptureSession!
     var videoPreviewLayer: AVCaptureVideoPreviewLayer!
     var imageView: UIImageView!
@@ -20,12 +21,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         // Setup Capture Session
         captureSession = AVCaptureSession()
         captureSession.sessionPreset = .high // video quality
-
+        
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
             print("No camera available")
             return
         }
-
+        
         do {
             let input = try AVCaptureDeviceInput(device: camera)
             captureSession.addInput(input)
@@ -33,19 +34,16 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             print("Error accessing camera: \(error)")
             return
         }
-
-        videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        videoPreviewLayer.videoGravity = .resizeAspect
-        videoPreviewLayer.frame = view.layer.bounds
         
-//        videoPreviewLayer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1)) // Horizontal flip
-        //        view.layer.addSublayer(videoPreviewLayer)
-
+//        videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+//        videoPreviewLayer.videoGravity = .resizeAspect
+//        videoPreviewLayer.frame = view.layer.bounds
         
         // Initialize imageView for processed image
         imageView = UIImageView(frame: view.bounds)
 //        imageView.contentMode = .scaleAspectFit // To ensure the processed image fits within the screen
         imageView.isHidden = false // Ensure the imageView is visible
+//        imageView.layer.setAffineTransform(CGAffineTransform(scaleX: 1, y: -1)) // Flip
         view.addSubview(imageView)
 
 
@@ -53,17 +51,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let videoOutput = AVCaptureVideoDataOutput()
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
         captureSession.addOutput(videoOutput)
-
-        captureSession.startRunning()
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.captureSession.startRunning()
+        }
     }
 
     // Part of the AVCaptureVideoDataOutputSampleBufferDelegate protocol
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-//        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-//            return
-//        }
-        
-        // Pass pixelBuffer to OpenCV for processing
         processImageWithOpenCV(sampleBuffer: sampleBuffer)
     }
 
