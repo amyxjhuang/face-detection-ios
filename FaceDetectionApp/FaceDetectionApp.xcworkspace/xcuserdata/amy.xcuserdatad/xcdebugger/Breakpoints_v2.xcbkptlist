@@ -96,8 +96,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "62"
             endingLineNumber = "62"
-            landmarkName = "ViewController"
-            landmarkType = "3">
+            landmarkName = "processImageWithOpenCV(sampleBuffer:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -174,8 +174,8 @@
             filePath = "FaceDetectionApp/OpenCV/OpenCVUtils.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "154"
-            endingLineNumber = "154"
+            startingLineNumber = "59"
+            endingLineNumber = "59"
             landmarkName = "+convertImageBufferToMat:"
             landmarkType = "7">
          </BreakpointContent>
@@ -190,8 +190,8 @@
             filePath = "FaceDetectionApp/OpenCV/OpenCVUtils.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "123"
-            endingLineNumber = "123"
+            startingLineNumber = "28"
+            endingLineNumber = "28"
             landmarkName = "+convertImageBufferToMat:"
             landmarkType = "7">
          </BreakpointContent>
@@ -206,8 +206,8 @@
             filePath = "FaceDetectionApp/OpenCV/OpenCVUtils.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "161"
-            endingLineNumber = "161"
+            startingLineNumber = "66"
+            endingLineNumber = "66"
             landmarkName = "+loadFaceCascadeModel"
             landmarkType = "7">
          </BreakpointContent>
