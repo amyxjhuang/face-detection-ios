@@ -12,9 +12,11 @@
 
 @interface OpenCVUtils : NSObject
 
+//TODO: change to static type? 
 + (NSString *)getOpenCVVersion;
 + (UIImage *)grayscaleImg:(UIImage *)image;
 + (UIImage *)resizeImg:(UIImage *)image :(int)width :(int)height :(int)interpolation;
++ (BOOL)loadFaceCascadeModel;
 //+ (cv::Mat)convertPixelBufferToMat:(CVPixelBufferRef)pixelBuffer; // Use 'id' for opaque C++ object, since we can only import the opencv functions in .mm files
 + (cv::Mat)detectFacesInMat:(cv::Mat)inputMat;
 + (UIImage *)UIImageFromCVMat:(cv::Mat)cvMat;

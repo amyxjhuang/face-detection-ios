@@ -13,9 +13,13 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     var captureSession: AVCaptureSession!
     var videoPreviewLayer: AVCaptureVideoPreviewLayer!
     var imageView: UIImageView!
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        if !OpenCVUtils.loadFaceCascadeModel() {
+            return
+        }
         self.view.backgroundColor = UIColor.systemPink
 
         // Setup Capture Session

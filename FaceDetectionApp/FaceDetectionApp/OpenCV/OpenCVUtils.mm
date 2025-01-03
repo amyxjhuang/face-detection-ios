@@ -11,6 +11,8 @@
 #import <opencv2/imgcodecs/ios.h>
 
 #import "OpenCVUtils.h"
+static cv::CascadeClassifier faceCascade;
+static bool isModelLoaded = false;
 
 
 @interface UIImage (OpenCVUtils)
@@ -149,21 +151,32 @@
     return cv::Mat(); // Return an empty cv::Mat if it's not a supported type
 }
 
++ (BOOL)loadFaceCascadeModel {
+    if (!isModelLoaded) {
+        NSString* faceCascadePath = [[NSBundle mainBundle] pathForResource:@"haarcascade_frontalface_default" ofType:@"xml"];
+        if (!faceCascade.load([faceCascadePath UTF8String])) {
+            NSLog(@"Error loading Haar cascade.");
+            isModelLoaded = NO;
+        }
+        isModelLoaded = YES;
+    }
+    return isModelLoaded;
+}
 
 + (cv::Mat)detectFacesInMat:(cv::Mat)inputMat {
     // Convert the inputMat from BGR to Grayscale
     cv::Mat grayMat;
     cv::cvtColor(inputMat, grayMat, cv::COLOR_BGR2GRAY);
 
-    // Load the Haar cascade model
-    cv::CascadeClassifier faceCascade;
-    NSString* faceCascadePath = [[NSBundle mainBundle] pathForResource:@"haarcascade_frontalface_default" ofType:@"xml"];
-
-
-    if (!faceCascade.load([faceCascadePath UTF8String])) {
-        NSLog(@"Error loading Haar cascade.");
-        return inputMat; // Return original frame if the model fails to load
-    }
+//    // Load the Haar cascade model
+//    cv::CascadeClassifier faceCascade;
+//    NSString* faceCascadePath = [[NSBundle mainBundle] pathForResource:@"haarcascade_frontalface_default" ofType:@"xml"];
+//
+//
+//    if (!faceCascade.load([faceCascadePath UTF8String])) {
+//        NSLog(@"Error loading Haar cascade.");
+//        return inputMat; // Return original frame if the model fails to load
+//    }
 
     // Detect faces
     std::vector<cv::Rect> faces;
