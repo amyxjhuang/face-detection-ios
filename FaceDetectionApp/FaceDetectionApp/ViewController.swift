@@ -67,14 +67,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 return
             }
 
-//        CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
+        CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
         let mat = OpenCVUtils.convertImageBuffer(toMat: imageBuffer);
         
         let processedMat = OpenCVUtils.detectFaces(in: mat)
         let processedImage = OpenCVUtils.uiImage(fromCVMat: processedMat);
         
 
-//        CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
+        CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
         
         DispatchQueue.main.async {
             if let imageView = self.imageView {

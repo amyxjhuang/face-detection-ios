@@ -116,70 +116,44 @@
 
     // Check if the imageBuffer is a CVPixelBufferRef
     if (CFGetTypeID(imageBuffer) == CVPixelBufferGetTypeID()) {
+
         // Convert to CVPixelBufferRef
         CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)imageBuffer;
 
-        // Lock the base address of the pixel buffer
-        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+            size_t width = CVPixelBufferGetWidth(pixelBuffer);
+            size_t height = CVPixelBufferGetHeight(pixelBuffer);
+            uint8_t* yPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+            uint8_t* uvPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+            size_t yStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+            size_t uvStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
 
-        // Get the base address of the pixel buffer
-        uint8_t *baseAddress = (uint8_t*)CVPixelBufferGetBaseAddress(pixelBuffer);
-        
-        // Get the image dimensions and bytes per row
-        int width = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0);
-        int height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0);
-        int bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
-        NSLog(@"Pixel format: %ld", CVPixelBufferGetPixelFormatType(pixelBuffer));
-       NSLog(@"Base address: %p", baseAddress);
-       NSLog(@"Width: %d, Height: %d, BytesPerRow: %d", width, height, bytesPerRow);
+            // Create cv::Mat wrappers for the Y and UV planes
+            cv::Mat yMat(height, width, CV_8UC1, yPlane, yStride);
+            cv::Mat uvMat(height / 2, width / 2, CV_8UC2, uvPlane, uvStride);
 
-        // Check the pixel format and create the corresponding cv::Mat
-        cv::Mat mat;
-        CVPlanarPixelBufferInfo_YCbCrBiPlanar *bufferInfo = (CVPlanarPixelBufferInfo_YCbCrBiPlanar *)baseAddress;
+            // Combine Y and UV planes into a single Mat
+            cv::Mat yuvMat;
+            cv::vconcat(yMat, uvMat.reshape(1, height / 2), yuvMat);
 
-        // If the pixel format is BGRA (32-bit color), handle as such
-        if (CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32BGRA) {
-            mat = cv::Mat(height, width, CV_8UC4, baseAddress);
-        }
-        // If it's YUV420p, we need to convert it manually to RGB or BGRA
-        else if (CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
-            
-            // Access the full YUV420p buffer
-            uint8_t *yuvBuffer = static_cast<uint8_t *>(baseAddress+bufferInfo->componentInfoY.offset);
-            cv::Mat yuvImage(height, width, CV_8UC1, yuvBuffer);
-            
-            // Convert YUV420p to RGB
-            cv::Mat rgbMat;
-            cv::cvtColor(yuvImage, rgbMat, cv::COLOR_YUV2RGB_I420);
+            // Convert YUV to BGR
+            cv::Mat bgrMat;
+            cv::cvtColor(yuvMat, bgrMat, cv::COLOR_YUV2BGR_NV12);
 
-            
-            // Convert to BGRA 
-            cv::Mat bgraMat;
-            cv::cvtColor(rgbMat, bgraMat, cv::COLOR_BGR2BGRA);
-
-            mat = bgraMat;
-            
-        }
-
-        // Unlock the base address after processing
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-        
         cv::Mat rotatedImage;
-        cv::rotate(mat, rotatedImage, cv::ROTATE_90_CLOCKWISE);
+        cv::rotate(bgrMat, rotatedImage, cv::ROTATE_90_CLOCKWISE);
         cv::Mat flippedImage;
         cv:flip(rotatedImage, flippedImage,1);
         return flippedImage;
     }
 
-    // If it's not a CVPixelBufferRef, you can return an empty Mat or handle it differently
     return cv::Mat(); // Return an empty cv::Mat if it's not a supported type
 }
 
 
 + (cv::Mat)detectFacesInMat:(cv::Mat)inputMat {
-    // Convert the inputMat from BGRA to Grayscale
+    // Convert the inputMat from BGR to Grayscale
     cv::Mat grayMat;
-    cv::cvtColor(inputMat, grayMat, cv::COLOR_BGRA2GRAY);
+    cv::cvtColor(inputMat, grayMat, cv::COLOR_BGR2GRAY);
 
     // Load the Haar cascade model
     cv::CascadeClassifier faceCascade;
@@ -209,21 +183,16 @@
     for (const auto& face : faces) {
         cv::rectangle(inputMat, face, cv::Scalar(0, 255, 0), 2); // Green rectangles
     }
-
-    return inputMat; // Return the modified frame
+    cv::Mat processedRBGMat;
+    cv::cvtColor(inputMat, processedRBGMat, cv::COLOR_BGR2RGB);
+    return processedRBGMat; // Return the modified frame
 }
 
 + (UIImage *)UIImageFromCVMat:(cv::Mat)cvMat
 {
   NSData *data = [NSData dataWithBytes:cvMat.data length:cvMat.elemSize()*cvMat.total()];
-  CGColorSpaceRef colorSpace;
- 
-  if (cvMat.elemSize() == 1) {
-      colorSpace = CGColorSpaceCreateDeviceGray();
-  } else {
-      colorSpace = CGColorSpaceCreateDeviceRGB();
-  }
- 
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+
   CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
  
   // Creating CGImage from cv::Mat
@@ -233,7 +202,7 @@
                                      8 * cvMat.elemSize(),                       //bits per pixel
                                      cvMat.step[0],                            //bytesPerRow
                                      colorSpace,                                 //colorspace
-                                      kCGImageAlphaNoneSkipLast,// bitmap info
+                                      kCGImageAlphaNone,
                                      provider,                                   //CGDataProviderRef
                                      NULL,                                       //decode
                                      false,                                      //should interpolate
