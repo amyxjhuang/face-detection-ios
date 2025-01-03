@@ -122,29 +122,35 @@ static bool isModelLoaded = false;
         // Convert to CVPixelBufferRef
         CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)imageBuffer;
 
-            size_t width = CVPixelBufferGetWidth(pixelBuffer);
-            size_t height = CVPixelBufferGetHeight(pixelBuffer);
-            uint8_t* yPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
-            uint8_t* uvPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
-            size_t yStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
-            size_t uvStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+        size_t width = CVPixelBufferGetWidth(pixelBuffer);
+        size_t height = CVPixelBufferGetHeight(pixelBuffer);
+        uint8_t* yPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+        uint8_t* uvPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+        size_t yStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+        size_t uvStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
 
-            // Create cv::Mat wrappers for the Y and UV planes
-            cv::Mat yMat(height, width, CV_8UC1, yPlane, yStride);
-            cv::Mat uvMat(height / 2, width / 2, CV_8UC2, uvPlane, uvStride);
+        // Create cv::Mat wrappers for the Y and UV planes
+        cv::Mat yMat(height, width, CV_8UC1, yPlane, yStride);
+        cv::Mat uvMat(height / 2, width / 2, CV_8UC2, uvPlane, uvStride);
 
-            // Combine Y and UV planes into a single Mat
-            cv::Mat yuvMat;
-            cv::vconcat(yMat, uvMat.reshape(1, height / 2), yuvMat);
+        // Combine Y and UV planes into a single Mat
+        cv::Mat yuvMat;
+        cv::vconcat(yMat, uvMat.reshape(1, height / 2), yuvMat);
 
-            // Convert YUV to BGR
-            cv::Mat bgrMat;
-            cv::cvtColor(yuvMat, bgrMat, cv::COLOR_YUV2BGR_NV12);
+        // Convert YUV to BGR
+        cv::Mat bgrMat;
+        cv::cvtColor(yuvMat, bgrMat, cv::COLOR_YUV2BGR_NV12);
 
         cv::Mat rotatedImage;
         cv::rotate(bgrMat, rotatedImage, cv::ROTATE_90_CLOCKWISE);
         cv::Mat flippedImage;
         cv:flip(rotatedImage, flippedImage,1);
+        
+        yMat.release();
+        uvMat.release();
+        bgrMat.release();
+        rotatedImage.release();
+        
         return flippedImage;
     }
 
@@ -198,6 +204,8 @@ static bool isModelLoaded = false;
     }
     cv::Mat processedRBGMat;
     cv::cvtColor(inputMat, processedRBGMat, cv::COLOR_BGR2RGB);
+    
+    inputMat.release();
     return processedRBGMat; // Return the modified frame
 }
 

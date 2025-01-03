@@ -39,15 +39,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             return
         }
         
-//        videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-//        videoPreviewLayer.videoGravity = .resizeAspect
-//        videoPreviewLayer.frame = view.layer.bounds
-        
-        // Initialize imageView for processed image
         imageView = UIImageView(frame: view.bounds)
-//        imageView.contentMode = .scaleAspectFit // To ensure the processed image fits within the screen
         imageView.isHidden = false // Ensure the imageView is visible
-//        imageView.layer.setAffineTransform(CGAffineTransform(scaleX: 1, y: -1)) // Flip
         view.addSubview(imageView)
 
 
@@ -72,11 +65,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             }
 
         CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
-        let mat = OpenCVUtils.convertImageBuffer(toMat: imageBuffer);
+        var mat = OpenCVUtils.convertImageBuffer(toMat: imageBuffer);
         
-        let processedMat = OpenCVUtils.detectFaces(in: mat)
+        var processedMat = OpenCVUtils.detectFaces(in: mat)
         let processedImage = OpenCVUtils.uiImage(fromCVMat: processedMat);
-        
+        mat.release()
+        processedMat.release()
 
         CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
         
