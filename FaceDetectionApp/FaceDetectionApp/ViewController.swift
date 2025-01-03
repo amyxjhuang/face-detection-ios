@@ -46,6 +46,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
         // Receive video frames as sample buffers
         let videoOutput = AVCaptureVideoDataOutput()
+        videoOutput.connection(with: .video)
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
         captureSession.addOutput(videoOutput)
         
@@ -65,11 +66,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             }
 
         CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
-        var mat = OpenCVUtils.convertImageBuffer(toMat: imageBuffer);
         
-        var processedMat = OpenCVUtils.detectFaces(in: mat)
-        let processedImage = OpenCVUtils.uiImage(fromCVMat: processedMat);
-        mat.release()
+        var bgrMat = OpenCVUtils.convertImageBuffer(toBGRMat: imageBuffer);
+        var processedMat = OpenCVUtils.detectFaces(in: bgrMat)
+        let processedImage = OpenCVUtils.uiImage(fromRGBMat: processedMat);
+        
+        bgrMat.release()
         processedMat.release()
 
         CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)

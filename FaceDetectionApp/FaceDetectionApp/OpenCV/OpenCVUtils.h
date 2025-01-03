@@ -4,20 +4,25 @@
 //
 //  Created by Amy Huang on 12/19/24.
 //
-#include <opencv2/core.hpp>  // For cv::Mat
-
+#include <opencv2/core.hpp>
 #include <CoreVideo/CoreVideo.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
 @interface OpenCVUtils : NSObject
 
-//TODO: change to static type? 
-
+/* Loads the FaceCascade model from OpenCV, returns YES if it successfully loaded */
 + (BOOL)loadFaceCascadeModel;
-//+ (cv::Mat)convertPixelBufferToMat:(CVPixelBufferRef)pixelBuffer; // Use 'id' for opaque C++ object, since we can only import the opencv functions in .mm files
+
+/* Detects faces in the input mat (BGR) and draws rectangles around each face.
+ * Outputs the resulting mat in RBG format */
 + (cv::Mat)detectFacesInMat:(cv::Mat)inputMat;
-+ (UIImage *)UIImageFromCVMat:(cv::Mat)cvMat;
-+ (cv::Mat)convertImageBufferToMat:(CVImageBufferRef)imageBuffer;
+
+/* Given an image buffer, convert to a BGR format cv::Mat */
++ (cv::Mat)convertImageBufferToBGRMat:(CVImageBufferRef)imageBuffer;
+
+/* Converts an RGB mat into a UIImage */
++ (UIImage *)UIImageFromRGBMat:(cv::Mat)cvMat;
+
 @end
 

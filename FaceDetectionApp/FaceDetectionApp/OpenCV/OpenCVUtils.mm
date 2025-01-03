@@ -16,7 +16,7 @@ static bool isModelLoaded = false;
 
 @implementation OpenCVUtils
 
-+ (cv::Mat)convertImageBufferToMat:(CVImageBufferRef)imageBuffer {
++ (cv::Mat)convertImageBufferToBGRMat:(CVImageBufferRef)imageBuffer {
     if (imageBuffer == NULL) {
         return cv::Mat(); // Return an empty Mat if the buffer is null
     }
@@ -104,7 +104,7 @@ static bool isModelLoaded = false;
     return processedRBGMat; // Return the modified frame
 }
 
-+ (UIImage *)UIImageFromCVMat:(cv::Mat)cvMat
++ (UIImage *)UIImageFromRGBMat:(cv::Mat)cvMat
 {
   NSData *data = [NSData dataWithBytes:cvMat.data length:cvMat.elemSize()*cvMat.total()];
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -118,7 +118,7 @@ static bool isModelLoaded = false;
                                      8 * cvMat.elemSize(),                       //bits per pixel
                                      cvMat.step[0],                            //bytesPerRow
                                      colorSpace,                                 //colorspace
-                                      kCGImageAlphaNone,
+                                     kCGImageAlphaNone,
                                      provider,                                   //CGDataProviderRef
                                      NULL,                                       //decode
                                      false,                                      //should interpolate
