@@ -33,7 +33,8 @@ inside the Podfile, add pod ‘OpenCV’
 Now make sure to open the <project>.xcworkspace file from now on (instead of .xcodeproj)
 
 Alternatively you can download the iOS pack OpenCV — 4.10.0 from https://opencv.org/releases/ and add it to your Swift project.
-Make sure you import the opencv2 files before any other import statements, or else XCode will complain.
+
+Note: Make sure you import the opencv2 files before any other import statements, or else XCode will complain. Also make sure your build settings are configured properly to compile C++
 
 
 ### Haarcascades 
