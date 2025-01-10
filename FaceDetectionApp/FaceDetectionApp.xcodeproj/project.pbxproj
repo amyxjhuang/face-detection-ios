@@ -99,6 +99,7 @@
 				E1E1D7EC2D14B75000A019C3 /* Sources */,
 				E1E1D7ED2D14B75000A019C3 /* Frameworks */,
 				E1E1D7EE2D14B75000A019C3 /* Resources */,
+				9993D41687E842F9675E8B7B /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -157,6 +158,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9993D41687E842F9675E8B7B /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-FaceDetectionApp/Pods-FaceDetectionApp-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-FaceDetectionApp/Pods-FaceDetectionApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-FaceDetectionApp/Pods-FaceDetectionApp-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		F2089C905A8D644A1ECF64E4 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;

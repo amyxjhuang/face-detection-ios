@@ -8,5 +8,6 @@ target 'FaceDetectionApp' do
   # Pods for FaceDetectionApp
 
 pod 'OpenCV', '3.4.0'
+pod 'TensorFlowLiteSwift'
 
 end

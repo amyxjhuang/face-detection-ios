@@ -1,0 +1,3 @@
+${PODS_ROOT}/Target Support Files/Pods-FaceDetectionApp/Pods-FaceDetectionApp-resources.sh
+${PODS_CONFIGURATION_BUILD_DIR}/TensorFlowLiteC/TensorFlowLiteC.bundle
+${PODS_CONFIGURATION_BUILD_DIR}/TensorFlowLiteSwift/TensorFlowLite.bundle
