@@ -81,8 +81,8 @@ static bool isModelLoaded = false;
 
     // Detect faces
     std::vector<cv::Rect> faces;
-    float scaleFactor = 1.1;
-    int minNeighbors = 3;
+    float scaleFactor = 1.2;
+    int minNeighbors = 6;
     int flags = 0;
     faceCascade.detectMultiScale(
         grayMat,
