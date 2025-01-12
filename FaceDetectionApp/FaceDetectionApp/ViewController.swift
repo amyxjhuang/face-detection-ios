@@ -9,23 +9,32 @@
 import UIKit
 import AVFoundation
 
-class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate  {
+class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureFileOutputRecordingDelegate  {
+    
     var captureSession: AVCaptureSession!
     var videoPreviewLayer: AVCaptureVideoPreviewLayer!
     var imageView: UIImageView!
-    
+    var recordButton: UIButton!
+    var movieFileOutput: AVCaptureMovieFileOutput!
+    var didEnableVideoPermissions: Bool!
+    var didEnableAudioPermissions: Bool!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         if !OpenCVUtils.loadFaceCascadeModel() {
+            NSLog("Could not load FaceCascade model")
             return
         }
-        self.view.backgroundColor = UIColor.systemPink
+        NSLog("Succesfully loaded FaceCascade model")
 
+        didEnableVideoPermissions = false
+        didEnableAudioPermissions = false
+        self.view.backgroundColor = UIColor.systemPink
+        
         // Setup Capture Session
         captureSession = AVCaptureSession()
         captureSession.sessionPreset = .high // video quality
-        
+
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
             print("No camera available")
             return
@@ -50,10 +59,37 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
         captureSession.addOutput(videoOutput)
         
+        
+        AVCaptureDevice.requestAccess(for: .video) { grantedVideo in
+            NSLog("Granted video access \(grantedVideo)")
+            self.didEnableVideoPermissions = grantedVideo
+
+        }
+        
+        AVCaptureDevice.requestAccess(for: .audio) { grantedAudio in
+            NSLog("Granted audio access \(grantedAudio)")
+            self.didEnableAudioPermissions = grantedAudio
+        }
+        if (didEnableAudioPermissions && didEnableVideoPermissions) {
+            self.setupUI()
+            movieFileOutput = AVCaptureMovieFileOutput()
+            if captureSession.canAddOutput(movieFileOutput) {
+                captureSession.addOutput(movieFileOutput)
+            }
+        }
         DispatchQueue.global(qos: .userInitiated).async {
             self.captureSession.startRunning()
         }
     }
+    
+    func setupUI() {
+        recordButton = UIButton(frame: CGRect(x: 20, y: view.bounds.height - 80, width: 100, height: 50))
+        recordButton.backgroundColor = .red
+        recordButton.setTitle("Record", for: .normal)
+        recordButton.addTarget(self, action: #selector(toggleRecording), for: .touchUpInside)
+        view.addSubview(recordButton)
+    }
+
 
     // Part of the AVCaptureVideoDataOutputSampleBufferDelegate protocol
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
@@ -85,4 +121,46 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
 
     }
+    
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: (any Error)?) {
+        
+        if let error = error {
+            print("Recording failed: \(error.localizedDescription)")
+        } else {
+            print("Video recorded successfully at: \(outputFileURL)")
+            // You can now do something with the recorded video,
+            // like save it to the Photos library or play it back.
+            UISaveVideoAtPathToSavedPhotosAlbum(outputFileURL.path(), nil, nil, nil);
+        }
+    }
+    
+    
+    @objc func toggleRecording() {
+        if movieFileOutput.isRecording {
+            stopRecording()
+        } else {
+            startRecording()
+        }
+    }
+    
+    func startRecording() {
+        // Create a temporary file URL for saving the video.
+        let outputPath = NSTemporaryDirectory() + "output-\(UUID().uuidString).mov"
+        let outputURL = URL(fileURLWithPath: outputPath)
+        
+        // Remove file if it already exists (unlikely in this case).
+//        if FileManager.default.fileExists(atPath: outputPath) {
+//            try? FileManager.default.removeItem(atPath: outputPath)
+//        }
+        
+        // Start recording to this URL
+        movieFileOutput.startRecording(to: outputURL, recordingDelegate: self)
+        recordButton.setTitle("Stop", for: .normal)
+    }
+    
+    func stopRecording() {
+        movieFileOutput.stopRecording()
+        recordButton.setTitle("Record", for: .normal)
+    }
+
 }
