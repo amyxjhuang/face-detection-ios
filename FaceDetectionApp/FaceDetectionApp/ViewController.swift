@@ -18,6 +18,11 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     var movieFileOutput: AVCaptureMovieFileOutput!
     var didEnableVideoPermissions: Bool!
     var didEnableAudioPermissions: Bool!
+    
+    var assetWriter: AVAssetWriter?
+    var assetWriterInput: AVAssetWriterInput?
+    var assetWriterPixelBufferInput: AVAssetWriterInputPixelBufferAdaptor?
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,7 +38,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         // Setup Capture Session
         captureSession = AVCaptureSession()
-        captureSession.sessionPreset = .high // video quality
+        captureSession.sessionPreset = .low // video quality
 
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
             print("No camera available")
