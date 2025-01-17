@@ -7,6 +7,8 @@ target 'FaceDetectionApp' do
 
   # Pods for FaceDetectionApp
 
+    use_frameworks!
+    pod 'MediaPipeTasksVision'
 pod 'OpenCV', '3.4.0'
 
 end
