@@ -1,3 +1,4 @@
+1/18/25: Found that MediaPipe and OpenCV are not compatible on iOS. Will have to update this to use something else 
 # Face & Hand Detection iOS
 A swift app that streams the front camera of your iOS device and draws a green rectangle around the detected faces 
 
