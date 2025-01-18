@@ -52,13 +52,14 @@ static bool isModelLoaded = false;
         cv:flip(rotatedImage, flippedImage,1);
         
         yMat.release();
+        yuvMat.release();
         uvMat.release();
         bgrMat.release();
         rotatedImage.release();
         
         return flippedImage;
     }
-
+    
     return cv::Mat(); // Return an empty cv::Mat if it's not a supported type
 }
 

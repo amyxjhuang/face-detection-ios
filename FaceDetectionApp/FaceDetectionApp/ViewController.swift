@@ -87,6 +87,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        captureSession?.stopRunning()
+        captureSession = nil
+    }
+    
     func setupUI() {
         recordButton = UIButton(frame: CGRect(x: 20, y: view.bounds.height - 80, width: 100, height: 50))
         recordButton.backgroundColor = .red
