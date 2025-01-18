@@ -136,4 +136,54 @@ static bool isModelLoaded = false;
   return finalImage;
  }
 
+CVPixelBufferRef pixelBufferFromMat(const cv::Mat& mat) {
+    // Define pixel format and image dimensions
+    OSType pixelFormat = kCVPixelFormatType_32BGRA;
+    size_t width = mat.cols;
+    size_t height = mat.rows;
+    
+    // Create pixel buffer attributes dictionary
+    NSDictionary *attributes = @{
+        (NSString *)kCVPixelBufferIOSurfacePropertiesKey: @{}
+    };
+
+    CVPixelBufferRef pixelBuffer = NULL;
+
+    // Create a new pixel buffer
+    CVReturn status = CVPixelBufferCreate(
+        kCFAllocatorDefault,
+        width,
+        height,
+        pixelFormat,
+        (__bridge CFDictionaryRef)attributes,
+        &pixelBuffer
+    );
+
+    if (status != kCVReturnSuccess || pixelBuffer == NULL) {
+        NSLog(@"Failed to create pixel buffer.");
+        return NULL;
+    }
+
+    // Lock the pixel buffer for writing
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+    void *pixelBufferBaseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
+
+    // Check for valid pixel buffer
+    if (pixelBufferBaseAddress == NULL) {
+        NSLog(@"Pixel buffer base address is NULL.");
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+        CVPixelBufferRelease(pixelBuffer);
+        return NULL;
+    }
+
+    // Copy pixel data from cv::Mat to CVPixelBuffer
+    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
+    memcpy(pixelBufferBaseAddress, mat.data, height * bytesPerRow);
+
+    // Unlock the pixel buffer
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+
+    return pixelBuffer;
+}
+
 @end
