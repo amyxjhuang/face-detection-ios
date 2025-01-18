@@ -1,4 +1,4 @@
-# Face Detection iOS
+# Face & Hand Detection iOS
 A swift app that streams the front camera of your iOS device and draws a green rectangle around the detected faces 
 
 <img src='https://github.com/user-attachments/assets/943a580e-72fc-42fd-99f7-2b95c2e31ffd' height='200' />
