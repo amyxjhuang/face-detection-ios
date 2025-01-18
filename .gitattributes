@@ -1,1 +1,2 @@
 FaceDetectionApp/Pods/OpenCV/opencv2.framework/Versions/A/opencv2 filter=lfs diff=lfs merge=lfs -text
+FaceDetectionApp/Pods/MediaPipeTasksCommon/frameworks/MediaPipeTasksCommon.xcframework/ios-arm64_x86_64-simulator/MediaPipeTasksCommon.framework/MediaPipeTasksCommon filter=lfs diff=lfs merge=lfs -text

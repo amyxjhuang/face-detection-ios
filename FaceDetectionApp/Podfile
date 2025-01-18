@@ -9,6 +9,7 @@ target 'FaceDetectionApp' do
 
     use_frameworks!
     pod 'MediaPipeTasksVision'
+    pod 'MediaPipeTasksCommon'
 pod 'OpenCV', '3.4.0'
 
 end

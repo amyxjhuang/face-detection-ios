@@ -1,24 +1,3 @@
-PODS:
-  - MediaPipeTasksCommon (0.10.20)
-  - MediaPipeTasksVision (0.10.20):
-    - MediaPipeTasksCommon (= 0.10.20)
-  - OpenCV (3.4.0)
-
-DEPENDENCIES:
-  - MediaPipeTasksVision
-  - OpenCV (= 3.4.0)
-
-SPEC REPOS:
-  trunk:
-    - MediaPipeTasksCommon
-    - MediaPipeTasksVision
-    - OpenCV
-
-SPEC CHECKSUMS:
-  MediaPipeTasksCommon: 04b56e3156fafc3d0be54fd3e5749ebdd2a28436
-  MediaPipeTasksVision: b1edea3da2f069b61d4f498de400ffc94cefea20
-  OpenCV: 6bc19773c6c9964a53f62cfec7f36f7d7b31207a
-
-PODFILE CHECKSUM: 9d50f5487ace179ea1182868d43e4cb17898e079
-
-COCOAPODS: 1.16.2
+version https://git-lfs.github.com/spec/v1
+oid sha256:f6d92713f017de6914056198691839ac107f0df3389d261492b5c59e058f3373
+size 587

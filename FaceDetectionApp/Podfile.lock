@@ -5,6 +5,7 @@ PODS:
   - OpenCV (3.4.0)
 
 DEPENDENCIES:
+  - MediaPipeTasksCommon
   - MediaPipeTasksVision
   - OpenCV (= 3.4.0)
 
@@ -19,6 +20,6 @@ SPEC CHECKSUMS:
   MediaPipeTasksVision: b1edea3da2f069b61d4f498de400ffc94cefea20
   OpenCV: 6bc19773c6c9964a53f62cfec7f36f7d7b31207a
 
-PODFILE CHECKSUM: 9d50f5487ace179ea1182868d43e4cb17898e079
+PODFILE CHECKSUM: 990564816691a8d3bd87d4b8065ae870ab6e9adc
 
 COCOAPODS: 1.16.2
