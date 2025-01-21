@@ -135,7 +135,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
         // Write to video if recording
         if isRecording {
-            let unmanagedPixelBuffer = pixelBufferFromMat(processedMat)
+            let unmanagedPixelBuffer = getImageBufferFromMat(processedMat)
             let pixelBuffer = unmanagedPixelBuffer?.takeRetainedValue()
 
             if let pixelBuffer = pixelBuffer {
@@ -203,18 +203,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     func startRecording() {
-//        // Create a temporary file URL for saving the video.
-//        let outputPath = NSTemporaryDirectory() + "output-\(UUID().uuidString).mov"
-//        let outputURL = URL(fileURLWithPath: outputPath)
-//        
-//        // Remove file if it already exists
-//        if FileManager.default.fileExists(atPath: outputPath) {
-//            try? FileManager.default.removeItem(atPath: outputPath)
-//        }
-//        
-//        // Start recording to this URL
-//        movieFileOutput.startRecording(to: outputURL, recordingDelegate: self)
-//        recordButton.setTitle("Stop", for: .normal)
         isRecording = true
         
         assetWriter?.startWriting()
@@ -223,9 +211,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     func stopRecording() {
-//        movieFileOutput.stopRecording()
-//        recordButton.setTitle("Record", for: .normal)
-//        isRecording = false
         NSLog("Tried to finish recording")
         isRecording = false
         assetWriterInput?.markAsFinished()

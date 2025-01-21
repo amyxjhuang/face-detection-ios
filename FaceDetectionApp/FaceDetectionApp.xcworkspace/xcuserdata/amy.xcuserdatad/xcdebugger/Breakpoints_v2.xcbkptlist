@@ -151,16 +151,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "68CC2010-6919-41AA-943D-973F48BAC2AB"
+            uuid = "FFC64775-67A6-4571-B42A-60CEEE5204C1"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FaceDetectionApp/ViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "240"
-            endingLineNumber = "240"
-            landmarkName = "stopRecording()"
+            startingLineNumber = "141"
+            endingLineNumber = "141"
+            landmarkName = "processImageWithOpenCV(sampleBuffer:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

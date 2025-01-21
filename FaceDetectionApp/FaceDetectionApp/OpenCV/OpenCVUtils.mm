@@ -135,55 +135,33 @@ static bool isModelLoaded = false;
  
   return finalImage;
  }
-
-CVPixelBufferRef pixelBufferFromMat(const cv::Mat& mat) {
-    // Define pixel format and image dimensions
-    OSType pixelFormat = kCVPixelFormatType_32BGRA;
-    size_t width = mat.cols;
-    size_t height = mat.rows;
+CVPixelBufferRef getImageBufferFromMat(cv::Mat matimg) {
     
-    // Create pixel buffer attributes dictionary
-    NSDictionary *attributes = @{
-        (NSString *)kCVPixelBufferIOSurfacePropertiesKey: @{}
-    };
-
-    CVPixelBufferRef pixelBuffer = NULL;
-
-    // Create a new pixel buffer
-    CVReturn status = CVPixelBufferCreate(
-        kCFAllocatorDefault,
-        width,
-        height,
-        pixelFormat,
-        (__bridge CFDictionaryRef)attributes,
-        &pixelBuffer
-    );
-
-    if (status != kCVReturnSuccess || pixelBuffer == NULL) {
-        NSLog(@"Failed to create pixel buffer.");
-        return NULL;
+    //https://stackoverflow.com/questions/66434552/objective-c-cvmat-to-cvpixelbuffer
+    cv::cvtColor(matimg, matimg, CV_BGR2BGRA);
+    
+    int widthReminder = matimg.cols % 64, heightReminder = matimg.rows % 64;
+    if (widthReminder != 0 || heightReminder != 0) {
+        cv::resize(matimg, matimg, cv::Size(matimg.cols + (64 - widthReminder), matimg.rows + (64 - heightReminder)));
     }
 
-    // Lock the pixel buffer for writing
-    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
-    void *pixelBufferBaseAddress = CVPixelBufferGetBaseAddress(pixelBuffer);
-
-    // Check for valid pixel buffer
-    if (pixelBufferBaseAddress == NULL) {
-        NSLog(@"Pixel buffer base address is NULL.");
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
-        CVPixelBufferRelease(pixelBuffer);
-        return NULL;
-    }
-
-    // Copy pixel data from cv::Mat to CVPixelBuffer
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
-    memcpy(pixelBufferBaseAddress, mat.data, height * bytesPerRow);
-
-    // Unlock the pixel buffer
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
-
-    return pixelBuffer;
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+                                [NSNumber numberWithBool: YES], kCVPixelBufferMetalCompatibilityKey,
+                                [NSNumber numberWithBool: YES], kCVPixelBufferCGImageCompatibilityKey,
+                                [NSNumber numberWithBool: YES], kCVPixelBufferCGBitmapContextCompatibilityKey,
+                                [NSNumber numberWithInt: matimg.cols], kCVPixelBufferWidthKey,
+                                [NSNumber numberWithInt: matimg.rows], kCVPixelBufferHeightKey,
+                                [NSNumber numberWithInt: matimg.step[0]], kCVPixelBufferBytesPerRowAlignmentKey,
+                                nil];
+    CVPixelBufferRef imageBuffer;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorMalloc, matimg.cols, matimg.rows, kCVPixelFormatType_32BGRA, (CFDictionaryRef) CFBridgingRetain(options), &imageBuffer) ;
+//    NSParameterAssert(status == kCVReturnSuccess && imageBuffer != NULL);
+    
+    CVPixelBufferLockBaseAddress(imageBuffer, 0);
+    void *base = CVPixelBufferGetBaseAddress(imageBuffer);
+    memcpy(base, matimg.data, matimg.total() * matimg.elemSize());
+    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+    return imageBuffer;
 }
 
 @end
