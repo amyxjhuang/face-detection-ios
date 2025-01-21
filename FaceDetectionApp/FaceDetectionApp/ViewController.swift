@@ -102,7 +102,16 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         view.addSubview(recordButton)
     }
 
-
+    
+    @objc func toggleRecording() {
+        if isRecording {
+            stopRecording()
+        } else {
+            if setupAssetWriter() {
+                startRecording()
+            }
+        }
+    }
     // Part of the AVCaptureVideoDataOutputSampleBufferDelegate protocol
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         processImageWithOpenCV(sampleBuffer: sampleBuffer)
@@ -113,7 +122,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             return
         }
 
-        // Lock the pixel buffer for reading
         CVPixelBufferLockBaseAddress(imageBuffer, .readOnly)
 
         // Process the image using OpenCV
@@ -123,7 +131,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
         CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
 
-        // Display the processed image in the UIImageView
         DispatchQueue.main.async {
             self.imageView?.image = processedImage
         }
@@ -193,15 +200,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     
-    @objc func toggleRecording() {
-        if isRecording {
-            stopRecording()
-        } else {
-            if setupAssetWriter() {
-                startRecording()
-            }
-        }
-    }
 
     func startRecording() {
         isRecording = true

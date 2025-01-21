@@ -113,21 +113,20 @@ static bool isModelLoaded = false;
   CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
  
   // Creating CGImage from cv::Mat
-  CGImageRef imageRef = CGImageCreate(cvMat.cols,                                 //width
-                                     cvMat.rows,                                 //height
-                                     8,                                          //bits per component
-                                     8 * cvMat.elemSize(),                       //bits per pixel
-                                     cvMat.step[0],                            //bytesPerRow
-                                     colorSpace,                                 //colorspace
+  CGImageRef imageRef = CGImageCreate(cvMat.cols,
+                                     cvMat.rows,
+                                     8,
+                                     8 * cvMat.elemSize(),
+                                     cvMat.step[0],
+                                     colorSpace,
                                      kCGImageAlphaNone,
-                                     provider,                                   //CGDataProviderRef
-                                     NULL,                                       //decode
-                                     false,                                      //should interpolate
-                                     kCGRenderingIntentDefault                   //intent
+                                     provider,                               //CGDataProviderRef
+                                     NULL,
+                                     false,
+                                     kCGRenderingIntentDefault
                                      );
  
  
-  // Getting UIImage from CGImage
   UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
   CGImageRelease(imageRef);
   CGDataProviderRelease(provider);
@@ -135,8 +134,8 @@ static bool isModelLoaded = false;
  
   return finalImage;
  }
+
 CVPixelBufferRef getImageBufferFromMat(cv::Mat matimg) {
-    
     //https://stackoverflow.com/questions/66434552/objective-c-cvmat-to-cvpixelbuffer
     cv::cvtColor(matimg, matimg, CV_BGR2RGBA);
     
@@ -155,7 +154,6 @@ CVPixelBufferRef getImageBufferFromMat(cv::Mat matimg) {
                                 nil];
     CVPixelBufferRef imageBuffer;
     CVReturn status = CVPixelBufferCreate(kCFAllocatorMalloc, matimg.cols, matimg.rows, kCVPixelFormatType_32BGRA, (CFDictionaryRef) CFBridgingRetain(options), &imageBuffer) ;
-//    NSParameterAssert(status == kCVReturnSuccess && imageBuffer != NULL);
     
     CVPixelBufferLockBaseAddress(imageBuffer, 0);
     void *base = CVPixelBufferGetBaseAddress(imageBuffer);
