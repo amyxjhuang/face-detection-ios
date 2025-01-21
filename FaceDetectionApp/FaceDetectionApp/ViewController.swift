@@ -21,7 +21,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     var assetWriter: AVAssetWriter?
     var assetWriterInput: AVAssetWriterInput?
-    var assetWriterPixelBufferInput: AVAssetWriterInputPixelBufferAdaptor?
+    var assetWriterPixelBufferInput: AVAssetWriterInputPixelBufferAdaptor!
     var isRecording: Bool = false
 
 
@@ -121,11 +121,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let processedMat = OpenCVUtils.detectFaces(in: bgrMat)
         let processedImage = OpenCVUtils.uiImage(fromRGBMat: processedMat)
 
-        // Release OpenCV matrices
-//        bgrMat.release()
-//        processedMat.release()
-
-        // Unlock the pixel buffer
         CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
 
         // Display the processed image in the UIImageView
@@ -135,12 +130,18 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
         // Write to video if recording
         if isRecording {
+            if (assetWriter?.status == .unknown) {
+                // Check that the asset writer started writing
+                assetWriter?.startWriting()
+                assetWriter?.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            }
             let unmanagedPixelBuffer = getImageBufferFromMat(processedMat)
             let pixelBuffer = unmanagedPixelBuffer?.takeRetainedValue()
 
             if let pixelBuffer = pixelBuffer {
                 let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-                assetWriterPixelBufferInput?.append(pixelBuffer, withPresentationTime: presentationTime)
+                NSLog("Presentation time: \(presentationTime)")
+                assetWriterPixelBufferInput.append(pixelBuffer, withPresentationTime: presentationTime)
             } else {
                 print("Failed to convert processed Mat to CVPixelBuffer.")
             }
@@ -205,8 +206,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     func startRecording() {
         isRecording = true
         
-        assetWriter?.startWriting()
-        assetWriter?.startSession(atSourceTime: .zero)
         recordButton.setTitle("Stop", for: .normal)
     }
     

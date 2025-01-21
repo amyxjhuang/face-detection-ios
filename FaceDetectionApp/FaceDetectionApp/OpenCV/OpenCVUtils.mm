@@ -138,7 +138,7 @@ static bool isModelLoaded = false;
 CVPixelBufferRef getImageBufferFromMat(cv::Mat matimg) {
     
     //https://stackoverflow.com/questions/66434552/objective-c-cvmat-to-cvpixelbuffer
-    cv::cvtColor(matimg, matimg, CV_BGR2BGRA);
+    cv::cvtColor(matimg, matimg, CV_BGR2RGBA);
     
     int widthReminder = matimg.cols % 64, heightReminder = matimg.rows % 64;
     if (widthReminder != 0 || heightReminder != 0) {
