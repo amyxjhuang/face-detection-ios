@@ -24,5 +24,8 @@
 /* Converts an RGB mat into a UIImage */
 + (UIImage *)UIImageFromRGBMat:(cv::Mat)cvMat;
 
+/* Converts a cv:Mat into an imagebuffer*/
+CVPixelBufferRef getImageBufferFromMat(cv::Mat matimg);
+
 @end
 

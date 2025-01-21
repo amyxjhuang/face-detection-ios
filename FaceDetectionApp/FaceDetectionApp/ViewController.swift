@@ -21,7 +21,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     var assetWriter: AVAssetWriter?
     var assetWriterInput: AVAssetWriterInput?
-    var assetWriterPixelBufferInput: AVAssetWriterInputPixelBufferAdaptor?
+    var assetWriterPixelBufferInput: AVAssetWriterInputPixelBufferAdaptor!
+    var isRecording: Bool = false
 
 
     override func viewDidLoad() {
@@ -38,7 +39,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         // Setup Capture Session
         captureSession = AVCaptureSession()
-        captureSession.sessionPreset = .low // video quality
+        captureSession.sessionPreset = .medium // video quality
 
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
             print("No camera available")
@@ -87,6 +88,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        captureSession?.stopRunning()
+        captureSession = nil
+    }
+    
     func setupUI() {
         recordButton = UIButton(frame: CGRect(x: 20, y: view.bounds.height - 80, width: 100, height: 50))
         recordButton.backgroundColor = .red
@@ -95,36 +102,91 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         view.addSubview(recordButton)
     }
 
-
+    
+    @objc func toggleRecording() {
+        if isRecording {
+            stopRecording()
+        } else {
+            if setupAssetWriter() {
+                startRecording()
+            }
+        }
+    }
     // Part of the AVCaptureVideoDataOutputSampleBufferDelegate protocol
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         processImageWithOpenCV(sampleBuffer: sampleBuffer)
     }
-
+    
     func processImageWithOpenCV(sampleBuffer: CMSampleBuffer) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-                return
-            }
-
-        CVPixelBufferLockBaseAddress(imageBuffer, .readOnly) // Locks the pixel buffer
-        
-        var bgrMat = OpenCVUtils.convertImageBuffer(toBGRMat: imageBuffer);
-        var processedMat = OpenCVUtils.detectFaces(in: bgrMat)
-        let processedImage = OpenCVUtils.uiImage(fromRGBMat: processedMat);
-        
-        bgrMat.release()
-        processedMat.release()
-
-        CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
-        
-        DispatchQueue.main.async {
-            if let imageView = self.imageView {
-                imageView.image = processedImage
-            } else {
-                print("imageView is nil")
-            }
+            return
         }
 
+        CVPixelBufferLockBaseAddress(imageBuffer, .readOnly)
+
+        // Process the image using OpenCV
+        let bgrMat = OpenCVUtils.convertImageBuffer(toBGRMat: imageBuffer)
+        let processedMat = OpenCVUtils.detectFaces(in: bgrMat)
+        let processedImage = OpenCVUtils.uiImage(fromRGBMat: processedMat)
+
+        CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
+
+        DispatchQueue.main.async {
+            self.imageView?.image = processedImage
+        }
+
+        // Write to video if recording
+        if isRecording {
+            if (assetWriter?.status == .unknown) {
+                // Check that the asset writer started writing
+                assetWriter?.startWriting()
+                assetWriter?.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            }
+            let unmanagedPixelBuffer = getImageBufferFromMat(processedMat)
+            let pixelBuffer = unmanagedPixelBuffer?.takeRetainedValue()
+
+            if let pixelBuffer = pixelBuffer {
+                let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                NSLog("Presentation time: \(presentationTime)")
+                assetWriterPixelBufferInput.append(pixelBuffer, withPresentationTime: presentationTime)
+            } else {
+                print("Failed to convert processed Mat to CVPixelBuffer.")
+            }
+        }
+    }
+
+    
+    func setupAssetWriter() -> Bool {
+        let outputPath = NSTemporaryDirectory() + "processed-output-\(UUID().uuidString).mov"
+        let outputURL = URL(fileURLWithPath: outputPath)
+
+        do {
+            assetWriter = try AVAssetWriter(outputURL: outputURL, fileType: .mov)
+            let outputSettings: [String: Any] = [
+                AVVideoCodecKey: AVVideoCodecType.h264,
+                AVVideoWidthKey: 720,
+                AVVideoHeightKey: 1280
+            ]
+            assetWriterInput = AVAssetWriterInput(mediaType: .video, outputSettings: outputSettings)
+            guard let assetWriterInput = assetWriterInput else { return false }
+
+            assetWriterInput.expectsMediaDataInRealTime = true
+            assetWriterPixelBufferInput = AVAssetWriterInputPixelBufferAdaptor(
+                assetWriterInput: assetWriterInput,
+                sourcePixelBufferAttributes: nil
+            )
+            
+            if assetWriter?.canAdd(assetWriterInput) == true {
+                assetWriter?.add(assetWriterInput)
+            } else {
+                print("Could not add asset writer input.")
+                return false
+            }
+        } catch {
+            print("Failed to set up asset writer: \(error)")
+            return false
+        }
+        return true
     }
     
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: (any Error)?) {
@@ -133,39 +195,34 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             print("Recording failed: \(error.localizedDescription)")
         } else {
             print("Video recorded successfully at: \(outputFileURL)")
-            // You can now do something with the recorded video,
-            // like save it to the Photos library or play it back.
             UISaveVideoAtPathToSavedPhotosAlbum(outputFileURL.path(), nil, nil, nil);
         }
     }
     
     
-    @objc func toggleRecording() {
-        if movieFileOutput.isRecording {
-            stopRecording()
-        } else {
-            startRecording()
-        }
-    }
-    
+
     func startRecording() {
-        // Create a temporary file URL for saving the video.
-        let outputPath = NSTemporaryDirectory() + "output-\(UUID().uuidString).mov"
-        let outputURL = URL(fileURLWithPath: outputPath)
+        isRecording = true
         
-        // Remove file if it already exists (unlikely in this case).
-//        if FileManager.default.fileExists(atPath: outputPath) {
-//            try? FileManager.default.removeItem(atPath: outputPath)
-//        }
-        
-        // Start recording to this URL
-        movieFileOutput.startRecording(to: outputURL, recordingDelegate: self)
         recordButton.setTitle("Stop", for: .normal)
     }
     
     func stopRecording() {
-        movieFileOutput.stopRecording()
-        recordButton.setTitle("Record", for: .normal)
-    }
+        NSLog("Tried to finish recording")
+        isRecording = false
+        assetWriterInput?.markAsFinished()
+        assetWriter?.finishWriting {
+            guard let outputURL = self.assetWriter?.outputURL else {
+                print("No output URL found.")
+                return
+            }
 
+            UISaveVideoAtPathToSavedPhotosAlbum(outputURL.path, self, nil, nil)
+
+            print("Recording finished at: \(self.assetWriter?.outputURL.absoluteString ?? "Unknown URL")")
+        }
+        NSLog("Assetwriter finished")
+        recordButton.setTitle("Record", for: .normal)
+
+    }
 }

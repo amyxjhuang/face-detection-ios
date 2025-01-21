@@ -229,6 +229,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = AmyHuang.FaceDetectionApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REEXPORTED_FRAMEWORK_NAMES = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "FaceDetectionApp/FaceDetection-Bridging-Header.h";
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
@@ -274,6 +275,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = AmyHuang.FaceDetectionApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REEXPORTED_FRAMEWORK_NAMES = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "FaceDetectionApp/FaceDetection-Bridging-Header.h";
 				SWIFT_OBJC_INTEROP_MODE = objcxx;
